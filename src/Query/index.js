@@ -13,7 +13,7 @@ import observeCount from 'observation/observeCount'
 import observeQuery from 'observation/observeQuery'
 import fieldObserver from 'observation/fieldObserver'
 import { buildQueryDescription, queryWithoutDeleted } from 'QueryDescription'
-import type { Condition, QueryDescription } from 'QueryDescription'
+import type { Condition, QueryDescription, Sort } from 'QueryDescription'
 import type Model, { AssociationInfo } from 'Model'
 import type Collection from 'Collection'
 import type { TableName, ColumnName } from 'Schema'
@@ -46,9 +46,9 @@ export default class Query<Record: Model> {
   )
 
   // Note: Don't use this directly, use Collection.query(...)
-  constructor(collection: Collection<Record>, conditions: Condition[]): void {
+  constructor(collection: Collection<Record>, conditions: Condition[], sorts: Sort[] = []): void {
     this.collection = collection
-    this._rawDescription = buildQueryDescription(conditions)
+    this._rawDescription = buildQueryDescription(conditions, sorts)
     this.description = queryWithoutDeleted(this._rawDescription)
   }
 

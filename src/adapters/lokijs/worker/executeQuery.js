@@ -17,7 +17,7 @@ function refineResultsForColumnComparisons(
 ): LokiResultset {
   if (hasColumnComparisons(conditions)) {
     // ignore JOINs (already checked and encodeMatcher can't check it)
-    const queryWithoutJoins = { where: conditions, join: [] }
+    const queryWithoutJoins = { where: conditions, join: [], sorts: [] }
     const matcher = encodeMatcher(queryWithoutJoins)
 
     // Workaround: encodeMatcher expects a Model so we wrap the raw in an { _raw:... } object

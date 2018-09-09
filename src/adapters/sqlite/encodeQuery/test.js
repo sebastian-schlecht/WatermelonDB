@@ -50,6 +50,24 @@ describe('watermelondb/adapters/sqlite/encodeQuery', () => {
       `select tasks.* from tasks where tasks.col1 is 'val1' and tasks.col2 > 2 and tasks.col3 >= 3 and tasks.col3_5 > 3.5 and tasks.col4 < 4 and tasks.col5 <= 5 and tasks.col6 is not null and tasks.col7 in (1, 2, 3) and tasks.col8 not in ('"a"', '''b''', 'c') and tasks.col9 between 10 and 11 and tasks._status is not 'deleted'`,
     )
   })
+  it('encodes sort statements without direction', () => {
+    const query = new Query(mockCollection, [
+      Q.where('col1', Q.eq('val1')),
+      Q.where('col2', Q.gt(2)),
+    ], [Q.sort('col2')])
+    expect(encodeQuery(query)).toBe(
+      `select tasks.* from tasks where tasks.col1 is 'val1' and tasks.col2 > 2 and tasks._status is not 'deleted' order by col2 asc`
+    )
+  })
+  it('encodes sort statements', () => {
+    const query = new Query(mockCollection, [
+      Q.where('col1', Q.eq('val1')),
+      Q.where('col2', Q.gt(2)),
+    ], [Q.sort('col2', 'desc')])
+    expect(encodeQuery(query)).toBe(
+      `select tasks.* from tasks where tasks.col1 is 'val1' and tasks.col2 > 2 and tasks._status is not 'deleted' order by col2 desc`
+    )
+  })
   it('encodes column comparisons', () => {
     const query = new Query(mockCollection, [
       Q.where('left1', Q.gte(Q.column('right1'))),

@@ -62,8 +62,16 @@ export type On = $Exact<{
   left: ColumnName,
   comparison: Comparison,
 }>
+
+export type SortDirection = 'asc' | 'desc';
+
+export type Sort = $Exact<{
+  column: ColumnName,
+  direction: SortDirection,
+}>
+
 export type Condition = Where | On
-export type QueryDescription = $Exact<{ where: Where[], join: On[] }>
+export type QueryDescription = $Exact<{ where: Where[], join: On[], sorts: Sort[] }>
 
 // Note: These operators are designed to match SQLite semantics
 // to ensure that iOS, Android, web, and Query observation yield exactly the same results
@@ -214,6 +222,11 @@ export const on: OnFunction = (table, leftOrWhereDescription, valueOrComparison)
   }
 }
 
+export function sort(columToSort: ColumnName, direction: ?SortDirection): Sort {
+  const sortDirection: SortDirection = direction || 'asc'
+  return { column: columToSort, direction: sortDirection }
+}
+
 const syncStatusColumn = columnName('_status')
 const getJoins: (Condition[]) => [On[], Where[]] = (partition(propEq('type', 'on')): any)
 const whereNotDeleted = where(syncStatusColumn, notEq('deleted'))
@@ -223,18 +236,19 @@ const joinsWithoutDeleted = pipe(
   map(table => on(table, syncStatusColumn, notEq('deleted'))),
 )
 
-export function buildQueryDescription(conditions: Condition[]): QueryDescription {
+export function buildQueryDescription(conditions: Condition[], sorts: Sort[]): QueryDescription {
   const [join, whereConditions] = getJoins(conditions)
 
-  return { join, where: whereConditions }
+  return { join, where: whereConditions, sorts }
 }
 
 export function queryWithoutDeleted(query: QueryDescription): QueryDescription {
-  const { join, where: whereConditions } = query
+  const { join, where: whereConditions, sorts } = query
 
   return {
     join: [...join, ...joinsWithoutDeleted(join)],
     where: [...whereConditions, whereNotDeleted],
+    sorts,
   }
 }
 

@@ -12,6 +12,7 @@ import type {
   And,
   Or,
   QueryDescription,
+  Sort,
 } from 'QueryDescription'
 import * as Q from 'QueryDescription'
 import { type TableName, type ColumnName } from 'Schema'
@@ -109,6 +110,15 @@ const encodeOn: On => string = ({ table, left, comparison }) =>
 
 const andJoiner = ' and '
 
+const encodeSort: (TableName<any>, QueryDescription) => string = (table, description) => {
+  const { sorts } = description
+  if (sorts && sorts.length) {
+    const statements = sorts.map(({ column, direction }) => `${column} ${direction}`).join(', ')
+    return ` order by ${statements}`
+  }
+  return ''
+}
+
 const encodeConditions: (TableName<any>, QueryDescription) => string = (table, description) => {
   const wheres = mapJoin(description.where, encodeWhere(table), andJoiner)
   const joins = mapJoin(description.join, encodeOn, andJoiner)
@@ -160,7 +170,8 @@ const encodeQuery = <T: Model>(query: Query<T>, countMode: boolean = false): str
   const sql =
     encodeMethod(table, countMode, hasToManyJoins) +
     encodeJoin(table, associations) +
-    encodeConditions(table, description)
+    encodeConditions(table, description) + 
+    encodeSort(table, description)
 
   return sql
 }
